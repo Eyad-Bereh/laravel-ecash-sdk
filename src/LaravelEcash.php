@@ -14,39 +14,43 @@ use IXCoders\LaravelEcash\Exceptions\MissingRouteException;
 class LaravelEcash
 {
     private string $terminal_key;
+
     private string $merchant_id;
+
     private string $merchant_secret;
+
     private string $redirect_url;
+
     private string $callback_url;
 
     public function __construct()
     {
         $keys = [
-            "terminal_key",
-            "merchant_id",
-            "merchant_secret",
+            'terminal_key',
+            'merchant_id',
+            'merchant_secret',
         ];
 
         $length = count($keys);
         for ($i = 0; $i < $length; $i++) {
             $key = $keys[$i];
             $is_valid = $this->checkIfConfigurationValueIsSet($key);
-            if (!$is_valid) {
+            if (! $is_valid) {
                 throw new InvalidOrMissingConfigurationValueException($key);
             }
         }
 
-        $routes = ["redirect_route", "callback_route"];
+        $routes = ['redirect_route', 'callback_route'];
         $alternatives = [
-            "redirect_route" => "ECASH_REDIRECT_URL",
-            "callback_route" => "ECASH_CALLBACK_URL"
+            'redirect_route' => 'ECASH_REDIRECT_URL',
+            'callback_route' => 'ECASH_CALLBACK_URL',
         ];
 
         $length = count($routes);
         for ($i = 0; $i < $length; $i++) {
             $route = $routes[$i];
-            $route_name = config("laravel-ecash-sdk." . $route);
-            if (is_null($route_name) || !Route::has($route_name)) {
+            $route_name = config('laravel-ecash-sdk.'.$route);
+            if (is_null($route_name) || ! Route::has($route_name)) {
                 $alternative = $alternatives[$route];
                 $value = env($alternative);
                 if (is_null($value)) {
@@ -55,34 +59,35 @@ class LaravelEcash
             }
         }
 
-        $this->terminal_key     = config("laravel-ecash-sdk.terminal_key");
-        $this->merchant_id      = config("laravel-ecash-sdk.merchant_id");
-        $this->merchant_secret  = config("laravel-ecash-sdk.merchant_secret");
+        $this->terminal_key = config('laravel-ecash-sdk.terminal_key');
+        $this->merchant_id = config('laravel-ecash-sdk.merchant_id');
+        $this->merchant_secret = config('laravel-ecash-sdk.merchant_secret');
 
-        $redirect_route = config("laravel-ecash-sdk.redirect_route");
-        $callback_route = config("laravel-ecash-sdk.callback_route");
+        $redirect_route = config('laravel-ecash-sdk.redirect_route');
+        $callback_route = config('laravel-ecash-sdk.callback_route');
 
         if (Route::has($redirect_route)) {
             $this->redirect_url = route($redirect_route);
         } else {
-            $this->redirect_url = env("ECASH_REDIRECT_URL");
+            $this->redirect_url = env('ECASH_REDIRECT_URL');
         }
 
         if (Route::has($callback_route)) {
             $this->callback_url = route($callback_route);
         } else {
-            $this->callback_url = env("ECASH_CALLBACK_URL");
+            $this->callback_url = env('ECASH_CALLBACK_URL');
         }
     }
 
     public function getVerificationCode(int $amount, string $reference): string
     {
-        $combination = $this->merchant_id .
-            $this->merchant_secret .
-            $amount .
-            mb_convert_encoding($reference, "ASCII", "UTF-8");
+        $combination = $this->merchant_id.
+            $this->merchant_secret.
+            $amount.
+            mb_convert_encoding($reference, 'ASCII', 'UTF-8');
 
         $hash = md5($combination);
+
         return Str::upper($hash);
     }
 
@@ -90,16 +95,17 @@ class LaravelEcash
     {
         $current = $this->getVerificationCode($amount, $reference);
         $hash = Str::upper($hash);
+
         return strcmp($current, $hash);
     }
 
-    public function generatePaymentLink(string $checkout_type, int $amount, string $reference, string $currency = "SYP", ?string $language = NULL): string
+    public function generatePaymentLink(string $checkout_type, int $amount, string $reference, string $currency = 'SYP', ?string $language = null): string
     {
-        if (!$this->isValidCheckoutType($checkout_type)) {
+        if (! $this->isValidCheckoutType($checkout_type)) {
             throw new InvalidCheckoutTypeException($checkout_type);
         }
 
-        if (!$this->isValidCurrency($currency)) {
+        if (! $this->isValidCurrency($currency)) {
             throw new InvalidCurrencyException($currency);
         }
 
@@ -113,9 +119,9 @@ class LaravelEcash
 
         $verification_code = $this->getVerificationCode($amount, $reference);
 
-        $base_url = "https://checkout.ecash-pay.co/";
+        $base_url = 'https://checkout.ecash-pay.co/';
         $segments = [
-            "Checkout",
+            'Checkout',
             Str::studly($checkout_type),
             $this->terminal_key,
             $this->merchant_id,
@@ -125,32 +131,36 @@ class LaravelEcash
             Str::upper($language),
             htmlspecialchars($reference),
             urlencode($this->redirect_url),
-            urlencode($this->callback_url)
+            urlencode($this->callback_url),
         ];
-        $params = implode("/", $segments);
+        $params = implode('/', $segments);
 
-        $payment_link = $base_url . $params;
+        $payment_link = $base_url.$params;
+
         return $payment_link;
     }
 
     private function isValidCheckoutType(string $value): bool
     {
         $value = Str::upper($value);
-        $checkout_types = config("laravel-ecash-sdk.checkout_types");
+        $checkout_types = config('laravel-ecash-sdk.checkout_types');
+
         return in_array($value, $checkout_types);
     }
 
     private function isValidCurrency(string $value): bool
     {
         $value = Str::upper($value);
-        $currencies = config("laravel-ecash-sdk.currencies");
+        $currencies = config('laravel-ecash-sdk.currencies');
+
         return in_array($value, $currencies);
     }
 
     private function checkIfConfigurationValueIsSet(string $key): bool
     {
-        $option = "laravel-ecash-sdk." . $key;
+        $option = 'laravel-ecash-sdk.'.$key;
         $value = config($option);
-        return !is_null($value);
+
+        return ! is_null($value);
     }
 }

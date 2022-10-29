@@ -11,6 +11,6 @@ class LaravelEcash extends Facade
 {
     protected static function getFacadeAccessor()
     {
-        return "ecash.laravel";
+        return 'ecash.laravel';
     }
 }

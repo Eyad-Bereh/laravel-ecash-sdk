@@ -4,7 +4,6 @@ namespace IXCoders\LaravelEcash;
 
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use IXCoders\LaravelEcash\Commands\LaravelEcashCommand;
 
 class LaravelEcashServiceProvider extends PackageServiceProvider
 {
@@ -22,12 +21,12 @@ class LaravelEcashServiceProvider extends PackageServiceProvider
 
     public function packageRegistered()
     {
-        $this->app->bind("ecash.laravel", function () {
+        $this->app->bind('ecash.laravel', function () {
             return new \IXCoders\LaravelEcash\LaravelEcash();
         });
 
         $this->publishes([
-            __DIR__ . "/../config/laravel-ecash-sdk.php" => config_path("laravel-ecash-sdk.php")
-        ], "config");
+            __DIR__.'/../config/laravel-ecash-sdk.php' => config_path('laravel-ecash-sdk.php'),
+        ], 'config');
     }
 }

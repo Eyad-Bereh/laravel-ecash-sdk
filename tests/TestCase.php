@@ -3,8 +3,8 @@
 namespace IXCoders\LaravelEcash\Tests;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Orchestra\Testbench\TestCase as Orchestra;
 use IXCoders\LaravelEcash\LaravelEcashServiceProvider;
+use Orchestra\Testbench\TestCase as Orchestra;
 
 class TestCase extends Orchestra
 {
