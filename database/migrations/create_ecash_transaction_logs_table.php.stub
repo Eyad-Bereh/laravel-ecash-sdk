@@ -1,0 +1,51 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('ecash_transaction_logs', function (Blueprint $table) {
+            $table->id();
+
+            // Fields supplied by the user
+            $table->string("checkout_type");
+            $table->integer("amount");
+            $table->text("reference");
+            $table->string("currency");
+            $table->string("language");
+            $table->string("verification_code");
+
+            // Fields returned in response
+            $table->boolean("is_successful")->nullable();
+            $table->text("message")->nullable();
+            $table->string("transaction_number")->nullable();
+            $table->string("token")->nullable();
+
+            // Morph relationship with user
+            $table->nullableMorphs("user");
+
+            // Notes
+            $table->text("notes")->nullable();
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('ecash_transaction_logs');
+    }
+};
