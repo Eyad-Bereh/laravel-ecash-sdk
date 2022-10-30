@@ -1,69 +1,154 @@
-# :package_description
+# Unofficial Laravel SDK for E-cash
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/:vendor_slug/:package_slug.svg?style=flat-square)](https://packagist.org/packages/:vendor_slug/:package_slug)
-[![GitHub Tests Action Status](https://img.shields.io/github/workflow/status/:vendor_slug/:package_slug/run-tests?label=tests)](https://github.com/:vendor_slug/:package_slug/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/workflow/status/:vendor_slug/:package_slug/Fix%20PHP%20code%20style%20issues?label=code%20style)](https://github.com/:vendor_slug/:package_slug/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
-[![Total Downloads](https://img.shields.io/packagist/dt/:vendor_slug/:package_slug.svg?style=flat-square)](https://packagist.org/packages/:vendor_slug/:package_slug)
-<!--delete-->
----
-This repo can be used to scaffold a Laravel package. Follow these steps to get started:
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/ixcoders/laravel-ecash-sdk.svg?style=flat-square)](https://packagist.org/packages/ixcoders/laravel-ecash-sdk)
+[![GitHub Tests Action Status](https://img.shields.io/github/workflow/status/ixcoders/laravel-ecash-sdk/run-tests?label=tests)](https://github.com/ixcoders/laravel-ecash-sdk/actions?query=workflow%3Arun-tests+branch%3Amain)
+[![GitHub Code Style Action Status](https://img.shields.io/github/workflow/status/ixcoders/laravel-ecash-sdk/Fix%20PHP%20code%20style%20issues?label=code%20style)](https://github.com/ixcoders/laravel-ecash-sdk/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
+[![Total Downloads](https://img.shields.io/packagist/dt/ixcoders/laravel-ecash-sdk.svg?style=flat-square)](https://packagist.org/packages/ixcoders/laravel-ecash-sdk)
 
-1. Press the "Use this template" button at the top of this repo to create a new repo with the contents of this skeleton.
-2. Run "php ./configure.php" to run a script that will replace all placeholders throughout all the files.
-3. Have fun creating your package.
-4. If you need help creating a package, consider picking up our <a href="https://laravelpackage.training">Laravel Package Training</a> video course.
----
-<!--/delete-->
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
-
-## Support us
-
-[<img src="https://github-ads.s3.eu-central-1.amazonaws.com/:package_name.jpg?t=1" width="419px" />](https://spatie.be/github-ad-click/:package_name)
-
-We invest a lot of resources into creating [best in class open source packages](https://spatie.be/open-source). You can support us by [buying one of our paid products](https://spatie.be/open-source/support-us).
-
-We highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using. You'll find our address on [our contact page](https://spatie.be/about-us). We publish all received postcards on [our virtual postcard wall](https://spatie.be/open-source/postcards).
+A basic and simple package that aims to simplify the goal of integrating Ecash payment system into Laravel.
 
 ## Installation
 
 You can install the package via composer:
 
 ```bash
-composer require :vendor_slug/:package_slug
-```
-
-You can publish and run the migrations with:
-
-```bash
-php artisan vendor:publish --tag=":package_slug-migrations"
-php artisan migrate
+composer require ixcoders/laravel-ecash-sdk
 ```
 
 You can publish the config file with:
 
 ```bash
-php artisan vendor:publish --tag=":package_slug-config"
+php artisan vendor:publish --provider="IXCoders\\LaravelEcash\\LaravelEcashServiceProvider" --tag="config"
 ```
 
 This is the contents of the published config file:
 
 ```php
+// config for IXCoders/LaravelEcash
+
 return [
+    /**
+     * Checkout types
+     *
+     * Defines the available checkout types for the system.
+     */
+    "checkout_types" => [
+        "CARD",
+        "QR"
+    ],
+
+    /**
+     * Terminal key
+     *
+     * Defines the terminal key which will be used.
+     */
+    "terminal_key" => env("ECASH_TERMINAL_KEY"),
+
+    /**
+     * Merchant ID
+     *
+     * Defines the Merchant ID of the account that will be used.
+     */
+    "merchant_id"   =>  env("ECASH_MERCHANT_ID"),
+
+    /**
+     * Merchant secret
+     *
+     * Defines the secret key that links to the merchant account.
+     */
+    "merchant_secret" => env("ECASH_MERCHANT_SECRET"),
+
+    /**
+     * Currencies
+     *
+     * Defines the currencies that are currently supported by the system.
+     */
+    "currencies" => ["SYP"],
+
+    /**
+     * Redirect route
+     *
+     * Defines the name of the route which the user will be redirected to after the operation ends.
+     */
+    "redirect_route" => "ecash.redirect",
+
+    /**
+     * Callback route
+     *
+     * Defines the name of the route which will be called upon the operation finish.
+     */
+    "callback_route" => "ecash.callback"
 ];
+
 ```
 
-Optionally, you can publish the views using
+## Configuration
 
-```bash
-php artisan vendor:publish --tag=":package_slug-views"
-```
+This package requires from you to setup a number of parameters and confguration values before proceeding with its usage and they all can be found in the configuration file `laravel-ecash-sdk.php`, let's take a look at them:
+
+-   `terminal_key` — Defines the terminal key which will be used. This value can be configured by setting the environment variable `ECASH_TERMINAL_KEY`.
+-   `merchant_id` — Defines the Merchant ID of the account that will be used. This value can be configured by setting the environment variable `ECASH_MERCHANT_ID`.
+-   `merchant_secret` — Defines the secret key that links to the merchant account. This value can be configured by setting the environment variable `ECASH_MERCHANT_SECRET`.
+-   `redirect_route` — Defines the name of the route which the user will be redirected to after the operation ends. You can either define a route named `ecash.redirect` in your routes file, or you can set the environment variable `ECASH_REDIRECT_URL`.
+-   `callback_route` — Defines the name of the route which will be called upon the operation finish. You can either define a route named `ecash.callback` in your routes file, or you can set the environment variable `ECASH_CALLBACK_URL`.
+
+**Note:** The package will first look for the named routes and check if they're defined, if yes then it will use them, if no then it will look for the environment variables, if they're defined it will use them, if not then it will throw a `MissingRouteException` exception. Just remember that named routes has a higher priority.
 
 ## Usage
 
+There are many ways you can use the package, let's take a look at each one.
+
+-   Use the `LaravelEcash` facade:
+
 ```php
-$variable = new VendorName\Skeleton();
-echo $variable->echoPhrase('Hello, VendorName!');
+use IXCoders\LaravelEcash\Facades\LaravelEcash;
+
+$verificationCode = LaravelEcash::getVerificationCode($amount, $reference);
 ```
+
+-   Obtain an instance out of the service container:
+
+```php
+
+$object = app("ecash.laravel");
+$verificationCode = $object->getVerificationCode($amount, $reference);
+
+```
+
+-   Create an instance of `IXCoders\LaravelEcash\LaravelEcash` manually (not recommended):
+
+```php
+
+$object = new IXCoders\LaravelEcash\LaravelEcash();
+$verificationCode = $object->getVerificationCode($amount, $reference);
+
+```
+
+## Available functionality
+
+The core of the package is the class `IXCoders\LaravelEcash\LaravelEcash`, and it defines the following methods for public usage:
+
+```php
+class LaravelEcash {
+
+    public function getVerificationCode(int $amount, string $reference): string;
+
+    public function checkVerificationCode(string $hash, int $amount, string $reference): bool
+
+    public function generatePaymentLink(string $checkout_type, int $amount, string $reference, string $currency = "SYP", ?string $language = NULL): string;
+
+}
+```
+
+Most of the time, you will use the `generatePaymentLink()` method.
+
+This package can also throw a number of exceptions in unfortunate circumstances, and they all lies under the namespace `IXCoders\LaravelEcash\Exceptions`:
+
+-   `InvalidAmountException` — Thrown upon the insertion of incorrect amount to be processed.
+-   `InvalidCheckoutTypeException` — Thrown if an invalid checkout type has been passed.
+-   `InvalidCurrencyException` — Thrown if an invalid currency has been passed.
+-   `InvalidOrMissingConfigurationValueException` — Thrown if the configuration file contains invalid or missing configuration values that are necessary for the package to function correctly.
+-   `MissingRouteException` — Thrown if a route couldn't be found for redirect and callback. Please check the configuration section on routes for further information.
 
 ## Testing
 
@@ -85,8 +170,8 @@ Please review [our security policy](../../security/policy) on how to report secu
 
 ## Credits
 
-- [:author_name](https://github.com/:author_username)
-- [All Contributors](../../contributors)
+-   [Eyad Bereh](https://github.com/Eyad-Mohammed-Osama)
+-   [All Contributors](../../contributors)
 
 ## License
 
