@@ -13,14 +13,14 @@ abstract class EcashPaymentCallbackController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public final function __invoke(Request $request)
+    final public function __invoke(Request $request)
     {
         $this->beforeStorage();
 
         $this->afterStorage();
     }
 
-    protected abstract function beforeStorage();
+    abstract protected function beforeStorage();
 
-    protected abstract function afterStorage();
+    abstract protected function afterStorage();
 }
