@@ -23,7 +23,9 @@ class LaravelEcash
 
     private string $callback_url;
 
-    public static $personalAccessTokenModel = 'IXCoders\\LaravelEcash\\Models\\EcashTransactionLog';
+    private static $transaction_log_model = 'IXCoders\\LaravelEcash\\Models\\EcashTransactionLog';
+
+    public $transaction;
 
     public function __construct()
     {
@@ -37,7 +39,7 @@ class LaravelEcash
         for ($i = 0; $i < $length; $i++) {
             $key = $keys[$i];
             $is_valid = $this->checkIfConfigurationValueIsSet($key);
-            if (! $is_valid) {
+            if (!$is_valid) {
                 throw new InvalidOrMissingConfigurationValueException($key);
             }
         }
@@ -51,8 +53,8 @@ class LaravelEcash
         $length = count($routes);
         for ($i = 0; $i < $length; $i++) {
             $route = $routes[$i];
-            $route_name = config('laravel-ecash-sdk.'.$route);
-            if (is_null($route_name) || ! Route::has($route_name)) {
+            $route_name = config('laravel-ecash-sdk.' . $route);
+            if (is_null($route_name) || !Route::has($route_name)) {
                 $alternative = $alternatives[$route];
                 $value = env($alternative);
                 if (is_null($value)) {
@@ -83,9 +85,9 @@ class LaravelEcash
 
     public function getVerificationCode(int $amount, string $reference): string
     {
-        $combination = $this->merchant_id.
-            $this->merchant_secret.
-            $amount.
+        $combination = $this->merchant_id .
+            $this->merchant_secret .
+            $amount .
             mb_convert_encoding($reference, 'ASCII', 'UTF-8');
 
         $hash = md5($combination);
@@ -101,13 +103,13 @@ class LaravelEcash
         return strcmp($current, $hash);
     }
 
-    public function generatePaymentLink(string $checkout_type, int $amount, string $reference, string $currency = 'SYP', ?string $language = null): string
+    public function generatePaymentLink(string $checkout_type, int $amount, string $reference, string $currency = 'SYP', ?string $language = null): array
     {
-        if (! $this->isValidCheckoutType($checkout_type)) {
+        if (!$this->isValidCheckoutType($checkout_type)) {
             throw new InvalidCheckoutTypeException($checkout_type);
         }
 
-        if (! $this->isValidCurrency($currency)) {
+        if (!$this->isValidCurrency($currency)) {
             throw new InvalidCurrencyException($currency);
         }
 
@@ -137,7 +139,9 @@ class LaravelEcash
         ];
         $params = implode('/', $segments);
 
-        $payment_link = $base_url.$params;
+        $payment_link = $base_url . $params;
+
+        $this->transaction = $this->storeTransactionLogEntry($checkout_type, $amount, $reference, $currency, $language);
 
         return $payment_link;
     }
@@ -160,24 +164,40 @@ class LaravelEcash
 
     private function checkIfConfigurationValueIsSet(string $key): bool
     {
-        $option = 'laravel-ecash-sdk.'.$key;
+        $option = 'laravel-ecash-sdk.' . $key;
         $value = config($option);
 
-        return ! is_null($value);
+        return !is_null($value);
     }
 
-    private function storeTransactionLogEntry(): bool
+    private function storeTransactionLogEntry(string $checkout_type, int $amount, string $reference, string $currency = 'SYP', ?string $language = null)
     {
-        return true;
+        $transaction = new static::$transaction_log_model;
+        $transaction->checkout_type = $checkout_type;
+        $transaction->amount = $amount;
+        $transaction->reference = $reference;
+        $transaction->currency = $currency;
+        $transaction->language = $language;
+        $transaction->verification_code = $this->getVerificationCode($amount, $reference);
+        $transaction->save();
+
+        $this->transaction = $transaction;
+
+        return $transaction;
+    }
+
+    public function getTransactionLogEntry()
+    {
+        return $this->transaction;
     }
 
     public static function useEcashTransactionLogModel($model): void
     {
-        static::$personalAccessTokenModel = $model;
+        static::$transaction_log_model = $model;
     }
 
     public static function getEcashTransactionLogModel(): string
     {
-        return static::$personalAccessTokenModel;
+        return static::$transaction_log_model;
     }
 }
