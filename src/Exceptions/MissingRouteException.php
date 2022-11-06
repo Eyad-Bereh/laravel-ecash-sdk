@@ -6,10 +6,10 @@ use Exception;
 
 class MissingRouteException extends Exception
 {
-    public function __construct(string $route, string $alternative)
+    public function __construct(string $route)
     {
-        $message = "Neither the route ($route), nor the environment variable ($alternative) has been configured.";
-        $message .= 'Please define one of these variables for the package to function properly';
+        $message = "The route ($route) hasn't been configured.";
+        $message .= 'Please define this variable for the package to function properly.';
         parent::__construct($message);
     }
 }
