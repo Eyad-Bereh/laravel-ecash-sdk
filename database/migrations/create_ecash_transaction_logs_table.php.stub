@@ -22,7 +22,7 @@ return new class extends Migration
             $table->text("reference");
             $table->string("currency");
             $table->string("language");
-            $table->string("verification_code");
+            $table->string("verification_code")->unique();
 
             // Fields returned in response
             $table->boolean("is_successful")->nullable();
