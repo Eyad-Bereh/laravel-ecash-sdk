@@ -23,7 +23,7 @@ class EcashManager
 
     private string $callback_url;
 
-    private static $transaction_log_model = 'IXCoders\\LaravelEcash\\EcashTransactionLog';
+    private static string $transaction_log_model = 'IXCoders\\LaravelEcash\\EcashTransactionLog';
 
     public $transaction;
 
@@ -154,19 +154,26 @@ class EcashManager
 
     private function storeTransactionLogEntry(string $checkout_type, int $amount, string $reference, string $currency = 'SYP', ?string $language = null)
     {
-        $transaction = new static::$transaction_log_model;
-        $transaction->checkout_type = $checkout_type;
-        $transaction->amount = $amount;
-        $transaction->reference = $reference;
-        $transaction->currency = $currency;
-        $transaction->language = $language;
-        $transaction->verification_code = $this->getVerificationCode($amount, $reference);
-        $transaction->save();
+        $model = static::$transaction_log_model;
+        $verification_code = $this->getVerificationCode($amount, $reference);
+        $exists = $model::where("verification_code", $verification_code)->exists();
 
+        if (!$exists) {
+            $transaction = new $model;
+            $transaction->checkout_type = $checkout_type;
+            $transaction->amount = $amount;
+            $transaction->reference = $reference;
+            $transaction->currency = $currency;
+            $transaction->language = $language;
+            $transaction->verification_code = $this->getVerificationCode($amount, $reference);
+            $transaction->save();
+        } else {
+            $transaction = $model::where("verification_code", $verification_code)->first();
+        }
         return $transaction;
     }
 
-    public function getTransactionLogEntry()
+    public function getCurrentTransactionLogEntry()
     {
         return $this->transaction;
     }
