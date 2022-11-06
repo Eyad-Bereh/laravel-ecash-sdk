@@ -22,15 +22,15 @@ class LaravelEcashServiceProvider extends PackageServiceProvider
     public function packageRegistered()
     {
         $this->app->bind('ecash.laravel', function () {
-            return new \IXCoders\LaravelEcash\LaravelEcash();
+            return new \IXCoders\LaravelEcash\EcashManager();
         });
 
         $this->publishes([
-            __DIR__.'/../config/laravel-ecash-sdk.php' => config_path('laravel-ecash-sdk.php'),
+            __DIR__ . '/../config/laravel-ecash-sdk.php' => config_path('laravel-ecash-sdk.php'),
         ], 'config');
 
         $this->publishes([
-            __DIR__.'/../database/migrations/create_ecash_transaction_logs_table.php.stub' => database_path('migrations/'.date('Y_m_d_His', time()).'_create_ecash_transaction_logs_table.php'),
+            __DIR__ . '/../database/migrations/create_ecash_transaction_logs_table.php.stub' => database_path('migrations/' . date('Y_m_d_His', time()) . '_create_ecash_transaction_logs_table.php'),
         ], 'migrations');
     }
 }
