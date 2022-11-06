@@ -1,6 +1,6 @@
 <?php
 
-namespace IXCoders\LaravelEcash\Models;
+namespace IXCoders\LaravelEcash;
 
 use Illuminate\Database\Eloquent\Model;
 

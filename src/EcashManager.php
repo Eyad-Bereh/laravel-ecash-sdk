@@ -23,7 +23,7 @@ class EcashManager
 
     private string $callback_url;
 
-    private static $transaction_log_model = 'IXCoders\\LaravelEcash\\Models\\EcashTransactionLog';
+    private static $transaction_log_model = 'IXCoders\\LaravelEcash\\EcashTransactionLog';
 
     public $transaction;
 
