@@ -33,9 +33,9 @@ class LaravelEcashServiceProvider extends PackageServiceProvider
             __DIR__.'/../database/migrations/create_ecash_transaction_logs_table.php.stub' => database_path('migrations/'.date('Y_m_d_His', time()).'_create_ecash_transaction_logs_table.php'),
         ], 'migrations');
 
-        $use_default_controller = config("laravel-ecash-sdk.use_default_controller");
+        $use_default_controller = config('laravel-ecash-sdk.use_default_controller');
         if ($use_default_controller) {
-            $this->loadRoutesFrom(__DIR__ . '/../routes/routes.php');
+            $this->loadRoutesFrom(__DIR__.'/../routes/routes.php');
         }
     }
 }

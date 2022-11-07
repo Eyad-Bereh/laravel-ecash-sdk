@@ -82,10 +82,10 @@ class EcashManager
 
     public function getVerificationToken(string $transaction_number, int $amount, string $reference): string
     {
-        $combination = $this->merchant_id .
-            $this->merchant_secret .
-            $transaction_number .
-            $amount .
+        $combination = $this->merchant_id.
+            $this->merchant_secret.
+            $transaction_number.
+            $amount.
             mb_convert_encoding($reference, 'ASCII', 'UTF-8');
 
         $hash = md5($combination);
@@ -193,16 +193,16 @@ class EcashManager
     public function updateTransactionLogEntry(array $data, array $additional = []): bool
     {
         $data = $this->transformDataArrayFromRequest($data);
-        $token = $data["token"];
-        $transaction_number = $data["transaction_number"];
-        $amount = $data["Amount"];
-        $reference = $data["OrderRef"];
+        $token = $data['token'];
+        $transaction_number = $data['transaction_number'];
+        $amount = $data['Amount'];
+        $reference = $data['OrderRef'];
 
-        unset($data["Amount"]);
-        unset($data["OrderRef"]);
+        unset($data['Amount']);
+        unset($data['OrderRef']);
 
         $isValidToken = $this->checkVerificationToken($token, $transaction_number, $amount, $reference);
-        if (!$isValidToken) {
+        if (! $isValidToken) {
             throw new InvalidTokenException($token);
         }
 
@@ -211,7 +211,8 @@ class EcashManager
         $verification_code = $this->getVerificationCode($amount, $reference);
         $model = static::$transaction_log_model;
 
-        $transaction = $model::where("verification_code", $verification_code)->firstOrFail();
+        $transaction = $model::where('verification_code', $verification_code)->firstOrFail();
+
         return $transaction->update($attributes);
     }
 
@@ -233,10 +234,10 @@ class EcashManager
     private function transformDataArrayFromRequest(array $data): array
     {
         $map = [
-            "IsSuccess"     => "is_successful",
-            "Message"       => "message",
-            "TransactionNo" => "transaction_number",
-            "Token"         => "token"
+            'IsSuccess' => 'is_successful',
+            'Message' => 'message',
+            'TransactionNo' => 'transaction_number',
+            'Token' => 'token',
         ];
 
         $keys = array_keys($map);
@@ -253,7 +254,8 @@ class EcashManager
             }
         }
 
-        $data["is_successful"] = filter_var($data["is_successful"], FILTER_VALIDATE_BOOLEAN);
+        $data['is_successful'] = filter_var($data['is_successful'], FILTER_VALIDATE_BOOLEAN);
+
         return $data;
     }
 
@@ -261,6 +263,7 @@ class EcashManager
     {
         $current = $this->getVerificationToken($transaction_number, $amount, $reference);
         $hash = Str::upper($hash);
+
         return strcmp($current, $hash) === 0;
     }
 }

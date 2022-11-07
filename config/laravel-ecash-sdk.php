@@ -57,9 +57,9 @@ return [
 
     /**
      * Use default callback
-     * 
+     *
      * Defines whether the default controller for callback will be used or not.
      * This option is useful if you want to define a custom behavior for the callback controller.
      */
-    'use_default_controller' => TRUE
+    'use_default_controller' => true,
 ];
