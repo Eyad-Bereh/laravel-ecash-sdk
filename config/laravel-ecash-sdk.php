@@ -54,4 +54,12 @@ return [
      * Defines the name of the route which will be called upon the operation finish.
      */
     'callback_route' => 'ecash.callback',
+
+    /**
+     * Use default callback
+     * 
+     * Defines whether the default controller for callback will be used or not.
+     * This option is useful if you want to define a custom behavior for the callback controller.
+     */
+    'use_default_controller' => TRUE
 ];
