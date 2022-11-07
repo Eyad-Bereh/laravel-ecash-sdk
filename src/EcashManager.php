@@ -2,6 +2,7 @@
 
 namespace IXCoders\LaravelEcash;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
@@ -9,6 +10,7 @@ use IXCoders\LaravelEcash\Exceptions\InvalidAmountException;
 use IXCoders\LaravelEcash\Exceptions\InvalidCheckoutTypeException;
 use IXCoders\LaravelEcash\Exceptions\InvalidCurrencyException;
 use IXCoders\LaravelEcash\Exceptions\InvalidOrMissingConfigurationValueException;
+use IXCoders\LaravelEcash\Exceptions\InvalidTokenException;
 use IXCoders\LaravelEcash\Exceptions\MissingRouteException;
 
 class EcashManager
@@ -25,7 +27,7 @@ class EcashManager
 
     private static string $transaction_log_model = 'IXCoders\\LaravelEcash\\EcashTransactionLog';
 
-    public $transaction;
+    private Model $transaction;
 
     public function __construct()
     {
@@ -78,12 +80,25 @@ class EcashManager
         return Str::upper($hash);
     }
 
+    public function getVerificationToken(string $transaction_number, int $amount, string $reference): string
+    {
+        $combination = $this->merchant_id .
+            $this->merchant_secret .
+            $transaction_number .
+            $amount .
+            mb_convert_encoding($reference, 'ASCII', 'UTF-8');
+
+        $hash = md5($combination);
+
+        return Str::upper($hash);
+    }
+
     public function checkVerificationCode(string $hash, int $amount, string $reference): bool
     {
         $current = $this->getVerificationCode($amount, $reference);
         $hash = Str::upper($hash);
 
-        return strcmp($current, $hash);
+        return strcmp($current, $hash) === 0;
     }
 
     public function generatePaymentLink(string $checkout_type, int $amount, string $reference, string $currency = 'SYP', ?string $language = null): string
@@ -173,6 +188,31 @@ class EcashManager
         return $transaction;
     }
 
+    public function updateTransactionLogEntry(array $data, array $additional = []): bool
+    {
+        $data = $this->transformDataArrayFromRequest($data);
+        $token = $data["token"];
+        $transaction_number = $data["transaction_number"];
+        $amount = $data["Amount"];
+        $reference = $data["OrderRef"];
+
+        unset($data["Amount"]);
+        unset($data["OrderRef"]);
+
+        $isValidToken = $this->checkVerificationToken($token, $transaction_number, $amount, $reference);
+        if (!$isValidToken) {
+            throw new InvalidTokenException($token);
+        }
+
+        $attributes = array_merge($additional, $data);
+
+        $verification_code = $this->getVerificationCode($amount, $reference);
+        $model = static::$transaction_log_model;
+
+        $transaction = $model::where("verification_code", $verification_code)->firstOrFail();
+        return $transaction->update($attributes);
+    }
+
     public function getCurrentTransactionLogEntry()
     {
         return $this->transaction;
@@ -186,5 +226,39 @@ class EcashManager
     public static function getEcashTransactionLogModel(): string
     {
         return static::$transaction_log_model;
+    }
+
+    private function transformDataArrayFromRequest(array $data): array
+    {
+        $map = [
+            "IsSuccess"     => "is_successful",
+            "Message"       => "message",
+            "TransactionNo" => "transaction_number",
+            "Token"         => "token"
+        ];
+
+        $keys = array_keys($map);
+        $values = array_values($map);
+        $length = count($map);
+
+        for ($i = 0; $i < $length; $i++) {
+            $key = $keys[$i];
+            $value = $values[$i];
+
+            if (array_key_exists($key, $data)) {
+                $data[$value] = $data[$key];
+                unset($data[$key]);
+            }
+        }
+
+        $data["is_successful"] = filter_var($data["is_successful"], FILTER_VALIDATE_BOOLEAN);
+        return $data;
+    }
+
+    public function checkVerificationToken(string $hash, string $transaction_number, int $amount, string $reference): bool
+    {
+        $current = $this->getVerificationToken($transaction_number, $amount, $reference);
+        $hash = Str::upper($hash);
+        return strcmp($current, $hash) === 0;
     }
 }
