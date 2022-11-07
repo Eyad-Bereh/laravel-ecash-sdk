@@ -41,7 +41,7 @@ class EcashManager
         for ($i = 0; $i < $length; $i++) {
             $key = $keys[$i];
             $is_valid = $this->checkIfConfigurationValueIsSet($key);
-            if (!$is_valid) {
+            if (! $is_valid) {
                 throw new InvalidOrMissingConfigurationValueException($key);
             }
         }
@@ -51,8 +51,8 @@ class EcashManager
         $length = count($routes);
         for ($i = 0; $i < $length; $i++) {
             $route = $routes[$i];
-            $route_name = config('laravel-ecash-sdk.' . $route);
-            if (is_null($route_name) || !Route::has($route_name)) {
+            $route_name = config('laravel-ecash-sdk.'.$route);
+            if (is_null($route_name) || ! Route::has($route_name)) {
                 throw new MissingRouteException($route_name);
             }
         }
@@ -70,9 +70,9 @@ class EcashManager
 
     public function getVerificationCode(int $amount, string $reference): string
     {
-        $combination = $this->merchant_id .
-            $this->merchant_secret .
-            $amount .
+        $combination = $this->merchant_id.
+            $this->merchant_secret.
+            $amount.
             mb_convert_encoding($reference, 'ASCII', 'UTF-8');
 
         $hash = md5($combination);
@@ -103,11 +103,11 @@ class EcashManager
 
     public function generatePaymentLink(string $checkout_type, int $amount, string $reference, string $currency = 'SYP', ?string $language = null): string
     {
-        if (!$this->isValidCheckoutType($checkout_type)) {
+        if (! $this->isValidCheckoutType($checkout_type)) {
             throw new InvalidCheckoutTypeException($checkout_type);
         }
 
-        if (!$this->isValidCurrency($currency)) {
+        if (! $this->isValidCurrency($currency)) {
             throw new InvalidCurrencyException($currency);
         }
 
@@ -137,7 +137,7 @@ class EcashManager
         ];
         $params = implode('/', $segments);
 
-        $payment_link = $base_url . $params;
+        $payment_link = $base_url.$params;
 
         $this->transaction = $this->storeTransactionLogEntry($checkout_type, $amount, $reference, $currency, $language);
 
@@ -162,18 +162,19 @@ class EcashManager
 
     private function checkIfConfigurationValueIsSet(string $key): bool
     {
-        $option = 'laravel-ecash-sdk.' . $key;
+        $option = 'laravel-ecash-sdk.'.$key;
         $value = config($option);
-        return !is_null($value);
+
+        return ! is_null($value);
     }
 
     private function storeTransactionLogEntry(string $checkout_type, int $amount, string $reference, string $currency = 'SYP', ?string $language = null)
     {
         $model = static::$transaction_log_model;
         $verification_code = $this->getVerificationCode($amount, $reference);
-        $exists = $model::where("verification_code", $verification_code)->exists();
+        $exists = $model::where('verification_code', $verification_code)->exists();
 
-        if (!$exists) {
+        if (! $exists) {
             $transaction = new $model;
             $transaction->checkout_type = $checkout_type;
             $transaction->amount = $amount;
@@ -183,8 +184,9 @@ class EcashManager
             $transaction->verification_code = $this->getVerificationCode($amount, $reference);
             $transaction->save();
         } else {
-            $transaction = $model::where("verification_code", $verification_code)->first();
+            $transaction = $model::where('verification_code', $verification_code)->first();
         }
+
         return $transaction;
     }
 
