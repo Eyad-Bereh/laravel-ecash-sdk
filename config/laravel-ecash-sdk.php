@@ -62,4 +62,18 @@ return [
      * This option is useful if you want to define a custom behavior for the callback controller.
      */
     'use_default_controller' => true,
+
+    /**
+     * Callback validation rules
+     * 
+     * Defines the validation rules for the callback route.
+     */
+    'callback_validation_rules' => [
+        "IsSuccess"     =>  ["required", "boolean"],
+        "Message"       =>  ["nullable", "string", "max:1000"],
+        "OrderRef"      =>  ["required", "string", "max:60000"],
+        "TransactionNo" =>  ["required", "digits_between:1,100"],
+        "Amount"        =>  ["required", "integer", "gt:0"],
+        "Token"         =>  ["required", "string", "size:32"]
+    ]
 ];
