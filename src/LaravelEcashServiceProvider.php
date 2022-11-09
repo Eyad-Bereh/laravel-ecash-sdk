@@ -27,16 +27,16 @@ class LaravelEcashServiceProvider extends PackageServiceProvider
         });
 
         $this->publishes([
-            __DIR__ . '/../config/laravel-ecash-sdk.php' => config_path('laravel-ecash-sdk.php'),
+            __DIR__.'/../config/laravel-ecash-sdk.php' => config_path('laravel-ecash-sdk.php'),
         ], 'config');
 
         $this->publishes([
-            __DIR__ . '/../database/migrations/create_ecash_transaction_logs_table.php.stub' => database_path('migrations/' . date('Y_m_d_His', time()) . '_create_ecash_transaction_logs_table.php'),
+            __DIR__.'/../database/migrations/create_ecash_transaction_logs_table.php.stub' => database_path('migrations/'.date('Y_m_d_His', time()).'_create_ecash_transaction_logs_table.php'),
         ], 'migrations');
 
         $use_default_controller = config('laravel-ecash-sdk.use_default_controller');
         if ($use_default_controller) {
-            $this->loadRoutesFrom(__DIR__ . '/../routes/routes.php');
+            $this->loadRoutesFrom(__DIR__.'/../routes/routes.php');
         }
 
         $route = $this->app->make(Router::class);
