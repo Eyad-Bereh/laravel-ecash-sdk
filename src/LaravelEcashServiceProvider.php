@@ -3,6 +3,8 @@
 namespace IXCoders\LaravelEcash;
 
 use Illuminate\Routing\Router;
+use IXCoders\LaravelEcash\Http\Middleware\VerifyRemoteHostForCallback;
+use IXCoders\LaravelEcash\Http\Middleware\VerifyResponseToken;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -42,5 +44,8 @@ class LaravelEcashServiceProvider extends PackageServiceProvider
         $route = $this->app->make(Router::class);
         $route->aliasMiddleware('ecash.verify_remote_host', VerifyRemoteHostForCallback::class);
         $route->middleware('ecash.verify_remote_host');
+
+        $route->aliasMiddleware('ecash.verify_response_token', VerifyResponseToken::class);
+        $route->middleware('ecash.verify_response_token');
     }
 }
