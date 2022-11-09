@@ -1,6 +1,8 @@
 <?php
 
-namespace IXCoders\LaravelEcash\Tests;
+namespace IXCoders\LaravelEcash\Test\Unit;
+
+use IXCoders\LaravelEcash\Tests\TestCase;
 
 class VerificationCodeTest extends TestCase
 {
