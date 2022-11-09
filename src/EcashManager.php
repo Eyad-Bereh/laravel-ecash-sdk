@@ -83,12 +83,12 @@ class EcashManager
 
         $callback_route_middlewares = Route::getRoutes()->getByName($callback_route)->gatherMiddleware();
         $middlewares = [
-            "ecash.verify_remote_host" => VerifyRemoteHostForCallback::class,
-            "ecash.verify_response_token" => VerifyResponseToken::class
+            'ecash.verify_remote_host' => VerifyRemoteHostForCallback::class,
+            'ecash.verify_response_token' => VerifyResponseToken::class,
         ];
 
         foreach ($middlewares as $alias => $class) {
-            if (!in_array($alias, $callback_route_middlewares)) {
+            if (! in_array($alias, $callback_route_middlewares)) {
                 throw new MissingMiddlewareException($callback_route, $class, $alias);
             }
         }
@@ -96,9 +96,9 @@ class EcashManager
 
     public function getVerificationCode(int $amount, string $reference): string
     {
-        $combination = $this->merchant_id .
-            $this->merchant_secret .
-            $amount .
+        $combination = $this->merchant_id.
+            $this->merchant_secret.
+            $amount.
         mb_convert_encoding($reference, 'ASCII', 'UTF-8');
 
         $hash = md5($combination);

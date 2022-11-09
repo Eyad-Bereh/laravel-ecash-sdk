@@ -17,8 +17,8 @@ class VerifyRemoteHostForCallback
     public function handle(Request $request, Closure $next)
     {
         $ip = $request->ip();
-        if ($ip !== "188.114.96.14") {
-            $callback_route = config("laravel-ecash-sdk.callback_route");
+        if ($ip !== '188.114.96.14') {
+            $callback_route = config('laravel-ecash-sdk.callback_route');
             $callback_url = route($callback_route);
             // return response()->json([
             //     "callback_url" => $callback_url,

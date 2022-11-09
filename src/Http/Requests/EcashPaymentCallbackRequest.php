@@ -13,7 +13,8 @@ class EcashPaymentCallbackRequest extends FormRequest
      */
     public function rules()
     {
-        $rules = config("laravel-ecash-sdk.callback_validation_rules");
+        $rules = config('laravel-ecash-sdk.callback_validation_rules');
+
         return $rules;
     }
 }
