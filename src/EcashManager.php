@@ -14,6 +14,8 @@ use IXCoders\LaravelEcash\Exceptions\InvalidRouteMethodException;
 use IXCoders\LaravelEcash\Exceptions\InvalidTokenException;
 use IXCoders\LaravelEcash\Exceptions\MissingMiddlewareException;
 use IXCoders\LaravelEcash\Exceptions\MissingRouteException;
+use IXCoders\LaravelEcash\Http\Middleware\VerifyRemoteHostForCallback;
+use IXCoders\LaravelEcash\Http\Middleware\VerifyResponseToken;
 
 class EcashManager
 {
@@ -80,8 +82,15 @@ class EcashManager
         }
 
         $callback_route_middlewares = Route::getRoutes()->getByName($callback_route)->gatherMiddleware();
-        if (!in_array("ecash.verify_remote_host", $callback_route_middlewares)) {
-            throw new MissingMiddlewareException($callback_route, VerifyRemoteHostForCallback::class, "ecash.verify_remote_host");
+        $middlewares = [
+            "ecash.verify_remote_host" => VerifyRemoteHostForCallback::class,
+            "ecash.verify_response_token" => VerifyResponseToken::class
+        ];
+
+        foreach ($middlewares as $alias => $class) {
+            if (!in_array($alias, $callback_route_middlewares)) {
+                throw new MissingMiddlewareException($callback_route, $class, $alias);
+            }
         }
     }
 
@@ -90,7 +99,7 @@ class EcashManager
         $combination = $this->merchant_id .
             $this->merchant_secret .
             $amount .
-            mb_convert_encoding($reference, 'ASCII', 'UTF-8');
+        mb_convert_encoding($reference, 'ASCII', 'UTF-8');
 
         $hash = md5($combination);
 
