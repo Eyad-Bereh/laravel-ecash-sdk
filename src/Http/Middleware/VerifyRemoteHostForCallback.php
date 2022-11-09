@@ -4,7 +4,6 @@ namespace IXCoders\LaravelEcash\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use IXCoders\LaravelEcash\Exceptions\UnauthorizedAccessForCallbackException;
 
 class VerifyRemoteHostForCallback
 {
@@ -27,6 +26,7 @@ class VerifyRemoteHostForCallback
             //     "timestamp" =>  now()
             // ], 403);
         }
+
         return $next($request);
     }
 }
