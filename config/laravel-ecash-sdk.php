@@ -73,7 +73,7 @@ return [
         'Message' => ['nullable', 'string', 'max:1000'],
         'OrderRef' => ['required', 'string', 'max:60000'],
         'TransactionNo' => ['required', 'digits_between:1,100'],
-        'Amount' => ['required', 'integer', 'gt:0'],
+        'Amount' => ['required', 'numeric', 'gt:0'],
         'Token' => ['required', 'string', 'size:32'],
     ],
 ];
