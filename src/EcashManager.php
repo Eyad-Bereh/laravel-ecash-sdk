@@ -94,7 +94,7 @@ class EcashManager
         }
     }
 
-    public function getVerificationCode(int $amount, string $reference): string
+    public function getVerificationCode(string $amount, string $reference): string
     {
         $combination = $this->merchant_id.
             $this->merchant_secret.
@@ -106,7 +106,7 @@ class EcashManager
         return Str::upper($hash);
     }
 
-    public function getVerificationToken(string $transaction_number, int $amount, string $reference): string
+    public function getVerificationToken(string $transaction_number, string $amount, string $reference): string
     {
         $combination = $this->merchant_id.
             $this->merchant_secret.
@@ -119,7 +119,7 @@ class EcashManager
         return Str::upper($hash);
     }
 
-    public function checkVerificationCode(string $hash, int $amount, string $reference): bool
+    public function checkVerificationCode(string $hash, string $amount, string $reference): bool
     {
         $current = $this->getVerificationCode($amount, $reference);
         $hash = Str::upper($hash);
@@ -127,7 +127,7 @@ class EcashManager
         return strcmp($current, $hash) === 0;
     }
 
-    public function generatePaymentLink(string $checkout_type, int $amount, string $reference, string $currency = 'SYP', ?string $language = null): string
+    public function generatePaymentLink(string $checkout_type, string $amount, string $reference, string $currency = 'SYP', ?string $language = null): string
     {
         if (! $this->isValidCheckoutType($checkout_type)) {
             throw new InvalidCheckoutTypeException($checkout_type);
@@ -194,7 +194,7 @@ class EcashManager
         return ! is_null($value);
     }
 
-    private function storeTransactionLogEntry(string $checkout_type, int $amount, string $reference, string $currency = 'SYP', ?string $language = null)
+    private function storeTransactionLogEntry(string $checkout_type, string $amount, string $reference, string $currency = 'SYP', ?string $language = null)
     {
         $model = static::$transaction_log_model;
         $verification_code = $this->getVerificationCode($amount, $reference);
@@ -285,7 +285,7 @@ class EcashManager
         return $data;
     }
 
-    public function checkVerificationToken(string $hash, string $transaction_number, int $amount, string $reference): bool
+    public function checkVerificationToken(string $hash, string $transaction_number, string $amount, string $reference): bool
     {
         $current = $this->getVerificationToken($transaction_number, $amount, $reference);
         $hash = Str::upper($hash);
