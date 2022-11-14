@@ -18,7 +18,7 @@ return new class extends Migration
 
             // Fields supplied by the user
             $table->string("checkout_type");
-            $table->integer("amount");
+            $table->decimal("amount");
             $table->text("reference");
             $table->string("currency");
             $table->string("language");
