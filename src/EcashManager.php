@@ -29,7 +29,7 @@ class EcashManager
 
     private string $callback_url;
 
-    private static string $transaction_log_model = 'IXCoders\\LaravelEcash\\EcashTransactionLog';
+    private static string $transaction_model = 'IXCoders\\LaravelEcash\\EcashTransaction';
 
     private Model $transaction;
 
@@ -165,7 +165,7 @@ class EcashManager
 
         $payment_link = $base_url . $params;
 
-        $this->transaction = $this->storeTransactionLogEntry($checkout_type, $amount, $reference, $currency, $language);
+        $this->transaction = $this->storeTransactionEntry($checkout_type, $amount, $reference, $currency, $language);
 
         return $payment_link;
     }
@@ -194,9 +194,9 @@ class EcashManager
         return !is_null($value);
     }
 
-    private function storeTransactionLogEntry(string $checkout_type, string $amount, string $reference, string $currency = 'SYP', ?string $language = null)
+    private function storeTransactionEntry(string $checkout_type, string $amount, string $reference, string $currency = 'SYP', ?string $language = null)
     {
-        $model = static::$transaction_log_model;
+        $model = static::$transaction_model;
         $verification_code = $this->getVerificationCode($amount, $reference);
         $exists = $model::where('verification_code', $verification_code)->exists();
 
@@ -216,7 +216,7 @@ class EcashManager
         return $transaction;
     }
 
-    public function updateTransactionLogEntry(array $data, array $additional = []): bool
+    public function updateTransactionEntry(array $data, array $additional = []): bool
     {
         $data = $this->transformDataArrayFromRequest($data);
         $token = $data['token'];
@@ -235,26 +235,26 @@ class EcashManager
         $attributes = array_merge($additional, $data);
 
         $verification_code = $this->getVerificationCode($amount, $reference);
-        $model = static::$transaction_log_model;
+        $model = static::$transaction_model;
 
         $transaction = $model::where('verification_code', $verification_code)->firstOrFail();
 
         return $transaction->update($attributes);
     }
 
-    public function getCurrentTransactionLogEntry()
+    public function getCurrentTransactionEntry()
     {
         return $this->transaction;
     }
 
-    public static function useEcashTransactionLogModel($model): void
+    public static function useEcashTransactionModel($model): void
     {
-        static::$transaction_log_model = $model;
+        static::$transaction_model = $model;
     }
 
-    public static function getEcashTransactionLogModel(): string
+    public static function getEcashTransactionModel(): string
     {
-        return static::$transaction_log_model;
+        return static::$transaction_model;
     }
 
     private function transformDataArrayFromRequest(array $data): array

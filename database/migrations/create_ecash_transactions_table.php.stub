@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('ecash_transaction_logs', function (Blueprint $table) {
+        Schema::create('ecash_transactions', function (Blueprint $table) {
             $table->id();
 
             // Fields supplied by the user

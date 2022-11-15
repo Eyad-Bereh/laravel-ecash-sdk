@@ -17,6 +17,6 @@ final class EcashPaymentCallbackController extends Controller
      */
     final public function __invoke(EcashPaymentCallbackRequest $request)
     {
-        LaravelEcash::updateTransactionLogEntry($request->all());
+        LaravelEcash::updateTransactionEntry($request->all());
     }
 }

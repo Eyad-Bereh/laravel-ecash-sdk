@@ -4,7 +4,7 @@ namespace IXCoders\LaravelEcash;
 
 use Illuminate\Database\Eloquent\Model;
 
-class EcashTransactionLog extends Model
+class EcashTransaction extends Model
 {
     protected $fillable = [
         'checkout_type',
