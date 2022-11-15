@@ -20,10 +20,11 @@ class VerifyRemoteHostForCallback
         if ($ip !== '91.144.16.79') {
             $callback_route = config('laravel-ecash-sdk.callback_route');
             $callback_url = route($callback_route);
+
             return response()->json([
-                "callback_url" => $callback_url,
-                "message"   => "The following IP address ($ip) isn't authorized to make requests to the callback URL ($callback_url).",
-                "timestamp" =>  now()
+                'callback_url' => $callback_url,
+                'message' => "The following IP address ($ip) isn't authorized to make requests to the callback URL ($callback_url).",
+                'timestamp' => now(),
             ], 403);
         }
 
