@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
+use IXCoders\LaravelEcash\Events\EcashTransactionCompleted;
 use IXCoders\LaravelEcash\Events\EcashTransactionCreated;
 use IXCoders\LaravelEcash\Events\EcashTransactionUpdated;
 use IXCoders\LaravelEcash\Exceptions\EcashTransactionSaveFailedException;
@@ -249,6 +250,7 @@ class EcashManager
         if ($status === FALSE) {
             throw new EcashTransactionSaveFailedException();
         }
+        event(new EcashTransactionCompleted($transaction));
         return $status;
     }
 
