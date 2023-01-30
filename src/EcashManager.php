@@ -20,6 +20,8 @@ use IXCoders\LaravelEcash\Exceptions\MissingMiddlewareException;
 use IXCoders\LaravelEcash\Exceptions\MissingRouteException;
 use IXCoders\LaravelEcash\Http\Middleware\VerifyRemoteHostForCallback;
 use IXCoders\LaravelEcash\Http\Middleware\VerifyResponseToken;
+use IXCoders\LaravelEcash\Utilities\VerificationCodeManager;
+use IXCoders\LaravelEcash\Utilities\VerificationTokenManager;
 
 class EcashManager
 {
@@ -36,6 +38,10 @@ class EcashManager
     private static string $transaction_model = 'IXCoders\\LaravelEcash\\EcashTransaction';
 
     private Model $transaction;
+
+    private VerificationCodeManager $vcm;
+
+    private VerificationTokenManager $vtm;
 
     public function __construct()
     {
@@ -69,6 +75,9 @@ class EcashManager
         $this->merchant_id = config('laravel-ecash-sdk.merchant_id');
         $this->merchant_secret = config('laravel-ecash-sdk.merchant_secret');
 
+        $this->vcm = new VerificationCodeManager($this->merchant_id, $this->merchant_secret);
+        $this->vtm = new VerificationTokenManager($this->merchant_id, $this->merchant_secret);
+
         $redirect_route = config('laravel-ecash-sdk.redirect_route');
         $callback_route = config('laravel-ecash-sdk.callback_route');
 
@@ -98,39 +107,6 @@ class EcashManager
         }
     }
 
-    public function getVerificationCode(int $amount, string $reference): string
-    {
-        $combination = $this->merchant_id .
-            $this->merchant_secret .
-            $amount .
-            mb_convert_encoding($reference, 'ASCII', 'UTF-8');
-
-        $hash = md5($combination);
-
-        return Str::upper($hash);
-    }
-
-    public function getVerificationToken(string $transaction_number, string $amount, string $reference): string
-    {
-        $combination = $this->merchant_id .
-            $this->merchant_secret .
-            $transaction_number .
-            $amount .
-            mb_convert_encoding($reference, 'ASCII', 'UTF-8');
-
-        $hash = md5($combination);
-
-        return Str::upper($hash);
-    }
-
-    public function checkVerificationCode(string $hash, string $amount, string $reference): bool
-    {
-        $current = $this->getVerificationCode($amount, $reference);
-        $hash = Str::upper($hash);
-
-        return strcmp($current, $hash) === 0;
-    }
-
     public function generatePaymentLink(string $checkout_type, string $amount, string $reference, string $currency = 'SYP', ?string $language = null): string
     {
         if (!$this->isValidCheckoutType($checkout_type)) {
@@ -149,7 +125,7 @@ class EcashManager
             $language = App::getLocale();
         }
 
-        $verification_code = $this->getVerificationCode($amount, $reference);
+        $verification_code = $this->vcm->getVerificationCode($amount, $reference);
 
         $base_url = 'https://checkout.ecash-pay.co/';
         $segments = [
@@ -201,7 +177,7 @@ class EcashManager
     private function storeTransactionEntry(string $checkout_type, string $amount, string $reference, string $currency = 'SYP', ?string $language = null)
     {
         $model = static::$transaction_model;
-        $verification_code = $this->getVerificationCode($amount, $reference);
+        $verification_code = $this->vcm->getVerificationCode($amount, $reference);
         $exists = $model::where('verification_code', $verification_code)->exists();
 
         if (!$exists) {
@@ -211,7 +187,7 @@ class EcashManager
             $transaction->reference = $reference;
             $transaction->currency = $currency;
             $transaction->language = $language;
-            $transaction->verification_code = $this->getVerificationCode($amount, $reference);
+            $transaction->verification_code = $this->vcm->getVerificationCode($amount, $reference);
             $result = $transaction->save();
             if ($result === FALSE) {
                 throw new EcashTransactionSaveFailedException();
@@ -234,14 +210,14 @@ class EcashManager
         unset($data['Amount']);
         unset($data['OrderRef']);
 
-        $isValidToken = $this->checkVerificationToken($token, $transaction_number, $amount, $reference);
+        $isValidToken = $this->vtm->checkVerificationToken($token, $transaction_number, $amount, $reference);
         if (!$isValidToken) {
             throw new InvalidTokenException($token);
         }
 
         $attributes = array_merge($additional, $data);
 
-        $verification_code = $this->getVerificationCode($amount, $reference);
+        $verification_code = $this->vcm->getVerificationCode($amount, $reference);
         $model = static::$transaction_model;
 
         $transaction = $model::where('verification_code', $verification_code)->firstOrFail();
@@ -295,13 +271,5 @@ class EcashManager
         $data['is_successful'] = filter_var($data['is_successful'], FILTER_VALIDATE_BOOLEAN);
 
         return $data;
-    }
-
-    public function checkVerificationToken(string $hash, string $transaction_number, string $amount, string $reference): bool
-    {
-        $current = $this->getVerificationToken($transaction_number, $amount, $reference);
-        $hash = Str::upper($hash);
-
-        return strcmp($current, $hash) === 0;
     }
 }
