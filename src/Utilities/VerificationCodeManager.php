@@ -14,9 +14,9 @@ class VerificationCodeManager
 
     public function getVerificationCode(int $amount, string $reference): string
     {
-        $combination = $this->merchant_id .
-            $this->merchant_secret .
-            $amount .
+        $combination = $this->merchant_id.
+            $this->merchant_secret.
+            $amount.
             mb_convert_encoding($reference, 'ASCII', 'UTF-8');
 
         $hash = md5($combination);

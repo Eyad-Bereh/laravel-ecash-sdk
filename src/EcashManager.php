@@ -209,7 +209,7 @@ class EcashManager
         unset($data['OrderRef']);
 
         $isValidToken = $this->vtm->checkVerificationToken($token, $transaction_number, $amount, $reference);
-        if (!$isValidToken) {
+        if (! $isValidToken) {
             throw new InvalidTokenException($token);
         }
 
