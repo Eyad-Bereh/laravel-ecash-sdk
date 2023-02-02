@@ -14,10 +14,10 @@ class VerificationTokenManager
 
     public function getVerificationToken(string $transaction_number, string $amount, string $reference): string
     {
-        $combination = $this->merchant_id .
-            $this->merchant_secret .
-            $transaction_number .
-            $amount .
+        $combination = $this->merchant_id.
+            $this->merchant_secret.
+            $transaction_number.
+            $amount.
             mb_convert_encoding($reference, 'ASCII', 'UTF-8');
 
         $hash = md5($combination);
