@@ -24,9 +24,9 @@ class ConfigurationValidator
 
     public static function checkIfConfigurationValueIsSet(string $key): bool
     {
-        $option = 'laravel-ecash-sdk.' . $key;
+        $option = 'laravel-ecash-sdk.'.$key;
         $value = config($option);
 
-        return !is_null($value);
+        return ! is_null($value);
     }
 }
