@@ -19,6 +19,7 @@ use IXCoders\LaravelEcash\Exceptions\MissingRouteException;
 use IXCoders\LaravelEcash\Http\Middleware\VerifyRemoteHostForCallback;
 use IXCoders\LaravelEcash\Http\Middleware\VerifyResponseToken;
 use IXCoders\LaravelEcash\Utilities\ConfigurationValidator;
+use IXCoders\LaravelEcash\Utilities\RequestDataTransformer;
 use IXCoders\LaravelEcash\Utilities\VerificationCodeManager;
 use IXCoders\LaravelEcash\Utilities\VerificationTokenManager;
 
@@ -41,6 +42,8 @@ class EcashManager
     private VerificationCodeManager $vcm;
 
     private VerificationTokenManager $vtm;
+
+    private RequestDataTransformer $rdt;
 
     public function __construct()
     {
@@ -76,6 +79,7 @@ class EcashManager
 
         $this->vcm = new VerificationCodeManager($this->merchant_id, $this->merchant_secret);
         $this->vtm = new VerificationTokenManager($this->merchant_id, $this->merchant_secret);
+        $this->rdt = new RequestDataTransformer();
 
         $redirect_route = config('laravel-ecash-sdk.redirect_route');
         $callback_route = config('laravel-ecash-sdk.callback_route');
@@ -176,7 +180,7 @@ class EcashManager
 
     public function updateTransactionEntry(array $data, array $additional = []): bool
     {
-        $data = $this->transformDataArrayFromRequest($data);
+        $data = $this->rdt->transformDataArrayFromRequest($data);
         $token = $data['token'];
         $transaction_number = $data['transaction_number'];
         $amount = $data['Amount'];
@@ -186,7 +190,7 @@ class EcashManager
         unset($data['OrderRef']);
 
         $isValidToken = $this->vtm->checkVerificationToken($token, $transaction_number, $amount, $reference);
-        if (! $isValidToken) {
+        if (!$isValidToken) {
             throw new InvalidTokenException($token);
         }
 
@@ -219,33 +223,5 @@ class EcashManager
     public static function getEcashTransactionModel(): string
     {
         return static::$transaction_model;
-    }
-
-    private function transformDataArrayFromRequest(array $data): array
-    {
-        $map = [
-            'IsSuccess' => 'is_successful',
-            'Message' => 'message',
-            'TransactionNo' => 'transaction_number',
-            'Token' => 'token',
-        ];
-
-        $keys = array_keys($map);
-        $values = array_values($map);
-        $length = count($map);
-
-        for ($i = 0; $i < $length; $i++) {
-            $key = $keys[$i];
-            $value = $values[$i];
-
-            if (array_key_exists($key, $data)) {
-                $data[$value] = $data[$key];
-                unset($data[$key]);
-            }
-        }
-
-        $data['is_successful'] = filter_var($data['is_successful'], FILTER_VALIDATE_BOOLEAN);
-
-        return $data;
     }
 }
