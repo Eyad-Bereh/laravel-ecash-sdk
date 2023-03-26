@@ -130,7 +130,7 @@ class EcashManager
 
         $verification_code = $this->vcm->getVerificationCode($amount, $reference);
 
-        $base_url = 'https://checkout.ecash-pay.co/';
+        $base_url = 'https://checkout.ecash-pay.com/';
         $segments = [
             'Checkout',
             Str::studly($checkout_type),
